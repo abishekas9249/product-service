@@ -1,18 +1,23 @@
 package com.learn.product_service.controller;
 
+import com.learn.product_service.config.ApplicationProperties;
 import com.learn.product_service.dto.ProductRequest;
 import com.learn.product_service.exception.ProductNotFoundException;
 import com.learn.product_service.model.Product;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("api/products")
 @RestController
+@RequiredArgsConstructor
 public class ProductController {
+    private final ApplicationProperties appProperties;
     private List<Product> products = new ArrayList<>(
             List.of(new Product(1L, "Laptop", 750000.0, "Electronics"),
                     new Product(2L, "Phone", 25000.0, "Devices"),
@@ -21,7 +26,7 @@ public class ProductController {
 
     @GetMapping
     public List<Product> getAll() {
-        return products;
+        return products.stream().limit(appProperties.getMaxPageSize()).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
