@@ -1,40 +1,44 @@
 package com.learn.product_service.controller;
 
+import com.learn.product_service.config.ApplicationProperties;
 import com.learn.product_service.dto.ProductRequest;
-import com.learn.product_service.exception.ProductNotFoundException;
 import com.learn.product_service.model.Product;
+import com.learn.product_service.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("api/products")
 @RestController
+@RequiredArgsConstructor
 public class ProductController {
-    private List<Product> products = new ArrayList<>(
-            List.of(new Product(1L, "Laptop", 750000.0, "Electronics"),
-                    new Product(2L, "Phone", 25000.0, "Devices"),
-                    new Product(3L, "Desk", 12000.0, "Furniture"))
-    );
+    private final ApplicationProperties appProperties;
+    private final ProductService productService;
 
     @GetMapping
     public List<Product> getAll() {
-        return products;
+        return productService.getAllProducts().stream()
+                .limit(appProperties.getMaxPageSize()).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public Product getById(@PathVariable("id") Long id) {
-        return products.stream().filter(p -> p.getId()
-        .equals(id)).findFirst()
-        .orElseThrow(() -> new ProductNotFoundException(id));
+        return productService.getByProductId(id);
     }
 
     @PostMapping
     public ResponseEntity<Product> create(@Valid @RequestBody ProductRequest pr) {
-        Product product=new Product((long)(products.size()+1),pr.getName(),pr.getPrice(),pr.getCategory());
-        products.add(product);
+        Product product=productService.createProduct(pr);
         return ResponseEntity.status(201).body(product);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable("id")Long id){
+        productService.delete(id);
+        return ResponseEntity.status(200).body("Product"+id+" has been successfully deleted.");
     }
 }
