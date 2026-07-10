@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequestMapping("api/products")
@@ -36,9 +37,53 @@ public class ProductController {
         return ResponseEntity.status(201).body(product);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable("id")Long id){
-        productService.delete(id);
-        return ResponseEntity.status(200).body("Product"+id+" has been successfully deleted.");
+    @PutMapping("/{id}")
+    public Product update(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest req) {
+        return productService.updateProduct(id, req);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id")Long id){
+        productService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/category/{category}")
+    public List<Product> getByCategory(@PathVariable String category){
+        return productService.getByCategory(category);
+    }
+
+    @GetMapping("/count")
+    public Map<String,Integer> getCount(){
+        return Map.of("total",productService.getAllProducts().size());
+    }
+
+    @GetMapping("/search")
+    public List<Product> search(
+            @RequestParam String keyword) {
+        return productService.searchProducts(keyword);
+    }
+
+    @GetMapping("/price-range")
+    public List<Product> byPriceRange(
+            @RequestParam Double min,
+            @RequestParam Double max) {
+        return productService.getByPriceRange(min, max);
+    }
+
+    @GetMapping("/stats")
+    public List<Object[]> stats() {
+        return productService.getCategoryStats();
+    }
+
+    @PatchMapping("/price-increase/{category}")
+    public int priceIncrease(
+            @PathVariable String category,
+            @RequestParam Double factor) {
+        return productService
+                .applyPriceIncrease(category, factor);
+    }
+
 }
