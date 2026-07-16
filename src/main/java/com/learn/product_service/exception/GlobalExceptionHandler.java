@@ -38,4 +38,10 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(500,"Internal Server Error",null,LocalDateTime.now()));
     }
 
+    @ExceptionHandler(OrderQuantityException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFound(OrderQuantityException ex){
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, ex.getMessage(), null,LocalDateTime.now()));
+    }
+
 }
