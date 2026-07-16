@@ -1,6 +1,8 @@
 package com.learn.product_service.repository;
 
 import com.learn.product_service.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,31 +18,31 @@ public interface ProductRepository
         extends JpaRepository<Product, Long> {
 
     //Spring Data JPA Methods with different querying based on conditions
-    List<Product> findByCategory(String category);
+    Page<Product> findByCategory(String category, Pageable pageable);
 
-    List<Product> findByPriceLessThan(Double price);
+    Page<Product> findByPriceLessThan(Double price,Pageable pageable);
 
     @Query("SELECT p FROM Product p " +
             "WHERE p.price BETWEEN :min AND :max " +
             "ORDER BY p.price ASC")
-    List<Product> findByPriceBetween(@Param("min") Double min,@Param("max") Double max);
+    Page<Product> findByPriceBetween(@Param("min") Double min,@Param("max") Double max,Pageable pageable);
 
-    List<Product> findByNameContainingIgnoreCase(String keyword);
+    Page<Product> findByNameContainingIgnoreCase(String keyword,Pageable pageable);
 
-    List<Product> findByCategoryOrderByPriceAsc(String category);
+    Page<Product> findByCategoryOrderByPriceAsc(String category,Pageable pageable);
 
     long countByCategory(String category);
 
     boolean existsByNameIgnoreCase(String name);
 
-    List<Product> findTop3ByOrderByPriceDesc();
+    Page<Product> findTop3ByOrderByPriceDesc(Pageable pageable);
 
     //Adding JPQL Queries in methods of Repository
     @Query("SELECT p FROM Product p " +
             "WHERE LOWER(p.name) LIKE " +
             "LOWER(CONCAT('%', :keyword, '%'))")
-    List<Product> searchByName(
-            @Param("keyword") String keyword);
+    Page<Product> searchByName(
+            @Param("keyword") String keyword,Pageable pageable);
 
     @Query("SELECT p.category, COUNT(p), AVG(p.price) " +
             "FROM Product p GROUP BY p.category")
@@ -62,9 +64,9 @@ public interface ProductRepository
                     "ORDER BY created_at DESC " +
                     "LIMIT :limit",
             nativeQuery = true)
-    List<Product> findExpensiveProducts(
+    Page<Product> findExpensiveProducts(
             @Param("price") Double price,
-            @Param("limit") int limit);
+            @Param("limit") int limit,Pageable pageable);
 
 
     //@Modifying queries for updates and deletes
@@ -83,4 +85,6 @@ public interface ProductRepository
             "WHERE p.category = :category")
     int deleteByCategory(
             @Param("category") String category);
+
+
 }

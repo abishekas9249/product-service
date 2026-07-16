@@ -5,6 +5,10 @@ import com.learn.product_service.exception.ProductNotFoundException;
 import com.learn.product_service.model.Product;
 import com.learn.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,8 +17,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+
+    public Page<Product> getAllProductsPaged(
+            int page, int size,
+            String sortBy, String direction) {
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return productRepository.findAll(pageable);
     }
     public Product getByProductId(long id){
         return productRepository.findById(id)
@@ -35,8 +48,9 @@ public class ProductService {
         Product p=getByProductId(id);
         productRepository.delete(p);
     }
-    public List<Product> getByCategory(String category) {
-        return productRepository.findByCategory(category);
+    public Page<Product> getByCategoryPaged(String category,int page,int size) {
+        Pageable pageable=PageRequest.of(page,size,Sort.by("price").descending());
+        return productRepository.findByCategory(category,pageable);
     }
     public Product updateProduct(
             Long id, ProductRequest req) {
@@ -46,13 +60,16 @@ public class ProductService {
         p.setCategory(req.getCategory());
         return productRepository.save(p);
     }
-    public List<Product> searchProducts(String keyword) {
-        return productRepository.searchByName(keyword);
+    public Page<Product> searchProductsPaged(String keyword,int page,int size) {
+
+        Pageable pageable=PageRequest.of(page,size,Sort.by("price").ascending());
+        return productRepository.findByNameContainingIgnoreCase(keyword,pageable);
     }
 
-    public List<Product> getByPriceRange(
-            Double min, Double max) {
-        return productRepository.findByPriceBetween(min, max);
+    public Page<Product> getByPriceRange(
+            Double min, Double max,int page,int size) {
+        Pageable pageable=PageRequest.of(page,size,Sort.by("price").ascending());
+        return productRepository.findByPriceBetween(min, max,pageable);
     }
 
     public List<Object[]> getCategoryStats() {

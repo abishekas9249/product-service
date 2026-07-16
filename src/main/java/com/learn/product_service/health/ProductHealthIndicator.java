@@ -1,6 +1,8 @@
 package com.learn.product_service.health;
 
+import com.learn.product_service.repository.ProductRepository;
 import com.learn.product_service.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -10,17 +12,19 @@ public class ProductHealthIndicator
         implements HealthIndicator {
 
     private final ProductService productService;
+    @Autowired
+    private ProductRepository productRepository;
 
     public ProductHealthIndicator(
             ProductService productService) {
         this.productService = productService;
+
     }
 
     @Override
     public Health health() {
         try {
-            int count = productService
-                    .getAllProducts().size();
+            int count = productRepository.findAll().size();
 
             if (count > 0) {
                 return Health.up()
